@@ -1,0 +1,1665 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sellr POS — Run Your Shop Like a Chain Store</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <meta
+      name="description"
+      content="Sellr POS is an AI-powered, offline-first point of sale system built for East African retailers ready to scale. Manage inventory, process M-Pesa payments, and grow with AI insights."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      :root {
+        --bg: #0f0f14;
+        --bg2: #16161d;
+        --bg3: #1e1e28;
+        --lime: #c8ff00;
+        --clay: #c65d1e;
+        --gray: #b5b5b5;
+        --white: #f0f0f0;
+        --font-head: "Space Grotesk", sans-serif;
+        --font-body: "DM Sans", sans-serif;
+        --font-mono: "JetBrains Mono", monospace;
+        --ease: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      }
+      html {
+        scroll-behavior: smooth;
+        background: var(--bg);
+        color: var(--gray);
+        font-family: var(--font-body);
+        font-size: 16px;
+        overflow-x: hidden;
+      }
+      body {
+        background: var(--bg);
+        min-height: 100vh;
+        position: relative;
+      }
+      canvas#particles {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        pointer-events: none;
+        opacity: 0.4;
+      }
+      .cursor-glow {
+        position: fixed;
+        width: 300px;
+        height: 300px;
+        border-radius: 50%;
+        background: radial-gradient(
+          circle,
+          rgba(200, 255, 0, 0.06) 0%,
+          transparent 70%
+        );
+        pointer-events: none;
+        z-index: 9999;
+        transform: translate(-50%, -50%);
+        transition: transform 0.1s ease;
+      }
+      a {
+        color: var(--lime);
+        text-decoration: none;
+      }
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--font-head);
+        color: var(--white);
+        line-height: 1.1;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 24px;
+        position: relative;
+        z-index: 2;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 16px 32px;
+        border-radius: 60px;
+        font-family: var(--font-head);
+        font-weight: 600;
+        font-size: 0.95rem;
+        cursor: pointer;
+        border: none;
+        transition: all 0.3s var(--ease);
+        position: relative;
+      }
+      .btn-primary {
+        background: var(--lime);
+        color: var(--bg);
+        box-shadow: 0 0 30px rgba(200, 255, 0, 0.2);
+      }
+      .btn-primary:hover {
+        box-shadow: 0 0 50px rgba(200, 255, 0, 0.4);
+        transform: translateY(-2px);
+      }
+      .btn-secondary {
+        background: transparent;
+        color: var(--white);
+        border: 1.5px solid rgba(255, 255, 255, 0.2);
+      }
+      .btn-secondary:hover {
+        border-color: var(--lime);
+        color: var(--lime);
+      }
+      .reveal {
+        opacity: 0;
+        transform: translateY(40px);
+        transition: all 0.8s var(--ease);
+      }
+      .reveal.active {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .tag {
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: var(--lime);
+        margin-bottom: 12px;
+        display: inline-block;
+      }
+      /* NAV */
+      nav {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        z-index: 100;
+        padding: 20px 0;
+        transition: all 0.4s var(--ease);
+      }
+      nav.scrolled {
+        background: rgba(15, 15, 20, 0.85);
+        backdrop-filter: blur(20px);
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(200, 255, 0, 0.08);
+      }
+      nav .container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 32px;
+      }
+      .nav-link {
+        color: var(--white);
+        font-family: var(--font-head);
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: color 0.3s;
+      }
+      .nav-link:hover {
+        color: var(--lime);
+      }
+      .logo {
+        font-family: var(--font-head);
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--white);
+        z-index: 101;
+      }
+      .logo span {
+        color: var(--lime);
+      }
+      .nav-toggle {
+        display: none;
+        background: none;
+        border: none;
+        color: var(--white);
+        font-size: 1.8rem;
+        cursor: pointer;
+        z-index: 101;
+      }
+      /* MOBILE NAV */
+      @media (max-width: 991px) {
+        .nav-toggle {
+          display: block;
+        }
+        .nav-links {
+          position: fixed;
+          top: 0;
+          right: -100%;
+          width: 80%;
+          height: 100vh;
+          background: var(--bg2);
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          gap: 40px;
+          transition: all 0.4s var(--ease);
+          z-index: 100;
+          border-left: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .nav-links.active {
+          right: 0;
+        }
+        .nav-link {
+          font-size: 1.2rem;
+        }
+      }
+      /* HERO */
+      #hero {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        padding: 120px 0 80px;
+        position: relative;
+      }
+      .hero-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 60px;
+        align-items: center;
+      }
+      .hero-headline {
+        font-size: clamp(2.8rem, 5.5vw, 4.5rem);
+        font-weight: 700;
+        line-height: 1.05;
+        margin-bottom: 20px;
+      }
+      .hero-headline .accent {
+        color: var(--lime);
+        position: relative;
+      }
+      .hero-sub {
+        font-size: 1.15rem;
+        color: var(--gray);
+        max-width: 480px;
+        margin-bottom: 36px;
+        line-height: 1.7;
+      }
+      .hero-ctas {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 48px;
+      }
+      .trust-stats {
+        display: flex;
+        gap: 40px;
+      }
+      .stat-item .stat-num {
+        font-family: var(--font-head);
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--white);
+      }
+      .stat-item .stat-num span {
+        color: var(--lime);
+      }
+      .stat-item .stat-label {
+        font-size: 0.8rem;
+        color: var(--gray);
+        margin-top: 4px;
+      }
+      /* TRANSACTION FEED */
+      .tx-feed {
+        background: var(--bg2);
+        border: 1px solid rgba(200, 255, 0, 0.1);
+        border-radius: 16px;
+        padding: 24px;
+        position: relative;
+        overflow: hidden;
+      }
+      .tx-feed::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--lime),
+          transparent
+        );
+      }
+      .tx-feed-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 20px;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        color: var(--lime);
+      }
+      .tx-feed-header .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--lime);
+        animation: pulse 2s infinite;
+      }
+      .tx-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        min-height: 220px;
+      }
+      .tx-item {
+        background: var(--bg3);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        padding: 14px 16px;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        opacity: 0;
+        animation: txSlide 1s var(--ease) forwards;
+        animation-delay: var(--d, 0s);
+      }
+      .tx-item .tx-icon {
+        font-size: 1.1rem;
+        flex-shrink: 0;
+      }
+      .tx-item .tx-text {
+        color: var(--white);
+        flex: 1;
+      }
+      .tx-item .tx-text span {
+        color: var(--lime);
+      }
+      .tx-item .tx-time {
+        color: var(--gray);
+        font-size: 0.7rem;
+      }
+      @keyframes txSlide {
+        from {
+          opacity: 0;
+          transform: translateX(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.3;
+        }
+      }
+      /* GROWTH ENGINE */
+      #growth {
+        padding: 120px 0;
+        position: relative;
+      }
+      .section-header {
+        text-align: center;
+        margin-bottom: 80px;
+      }
+      .section-header h2 {
+        font-size: clamp(2rem, 4vw, 3.2rem);
+        margin-bottom: 16px;
+      }
+      .section-header p {
+        max-width: 560px;
+        margin: 0 auto;
+        line-height: 1.7;
+        font-size: 1.05rem;
+      }
+      .story-timeline {
+        position: relative;
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      .story-timeline::before {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: linear-gradient(
+          to bottom,
+          transparent,
+          var(--lime),
+          var(--clay),
+          transparent
+        );
+        transform: translateX(-50%);
+      }
+      .story-step {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        align-items: center;
+        margin-bottom: 60px;
+        position: relative;
+      }
+      .story-step:nth-child(even) .story-content {
+        order: 2;
+      }
+      .story-step:nth-child(even) .story-visual {
+        order: 1;
+      }
+      .story-dot {
+        position: absolute;
+        left: 50%;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--bg);
+        border: 2px solid var(--lime);
+        transform: translate(-50%, 0);
+        z-index: 2;
+        top: 20px;
+      }
+      .story-step:nth-child(even) .story-dot {
+        border-color: var(--clay);
+      }
+      .story-content h3 {
+        font-size: 1.4rem;
+        margin-bottom: 12px;
+      }
+      .story-content p {
+        line-height: 1.7;
+        font-size: 0.95rem;
+      }
+      .story-visual {
+        background: var(--bg2);
+        border-radius: 16px;
+        padding: 32px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        text-align: center;
+      }
+      .story-visual .story-emoji {
+        font-size: 3rem;
+        margin-bottom: 12px;
+        display: block;
+      }
+      .story-visual .story-metric {
+        font-family: var(--font-head);
+        font-size: 2rem;
+        color: var(--lime);
+        font-weight: 700;
+      }
+      .story-visual .story-metric-label {
+        font-size: 0.8rem;
+        color: var(--gray);
+        margin-top: 4px;
+      }
+      /* AI CAPABILITIES */
+      #ai {
+        padding: 120px 0;
+      }
+      .ai-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 24px;
+      }
+      .ai-card {
+        background: var(--bg2);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 16px;
+        padding: 32px;
+        transition: all 0.4s var(--ease);
+        position: relative;
+        overflow: hidden;
+      }
+      .ai-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 16px;
+        padding: 1px;
+        background: linear-gradient(
+          135deg,
+          rgba(200, 255, 0, 0.3),
+          transparent 60%
+        );
+        -webkit-mask:
+          linear-gradient(#fff 0 0) content-box,
+          linear-gradient(#fff 0 0);
+        mask:
+          linear-gradient(#fff 0 0) content-box,
+          linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        opacity: 0;
+        transition: opacity 0.4s;
+      }
+      .ai-card:hover::before {
+        opacity: 1;
+      }
+      .ai-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 60px rgba(200, 255, 0, 0.06);
+      }
+      .ai-card-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: rgba(200, 255, 0, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        margin-bottom: 20px;
+      }
+      .ai-card h3 {
+        font-size: 1.15rem;
+        margin-bottom: 10px;
+      }
+      .ai-card p {
+        font-size: 0.9rem;
+        line-height: 1.7;
+      }
+      /* OFFLINE + PAYMENTS */
+      #offline {
+        padding: 120px 0;
+      }
+      .offline-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 60px;
+        align-items: center;
+      }
+      .feature-list {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .feature-item {
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+      }
+      .feature-item .fi-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: rgba(198, 93, 30, 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 1.1rem;
+      }
+      .feature-item h4 {
+        font-size: 1rem;
+        margin-bottom: 4px;
+      }
+      .feature-item p {
+        font-size: 0.85rem;
+        line-height: 1.6;
+      }
+      .device-mockup {
+        position: relative;
+        background: var(--bg2);
+        border-radius: 20px;
+        padding: 40px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        text-align: center;
+      }
+      .device-mockup .device-screen {
+        background: var(--bg);
+        border-radius: 12px;
+        padding: 24px;
+        border: 1px solid rgba(200, 255, 0, 0.1);
+      }
+      .device-bar {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 16px;
+      }
+      .device-bar span {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+      .device-bar span:nth-child(1) {
+        background: #ff5f57;
+      }
+      .device-bar span:nth-child(2) {
+        background: #ffbd2e;
+      }
+      .device-bar span:nth-child(3) {
+        background: #28c840;
+      }
+      .device-line {
+        height: 8px;
+        border-radius: 4px;
+        margin-bottom: 10px;
+      }
+      .device-line.l1 {
+        width: 60%;
+        background: rgba(200, 255, 0, 0.2);
+      }
+      .device-line.l2 {
+        width: 80%;
+        background: rgba(255, 255, 255, 0.06);
+      }
+      .device-line.l3 {
+        width: 45%;
+        background: rgba(198, 93, 30, 0.2);
+      }
+      .device-line.l4 {
+        width: 70%;
+        background: rgba(255, 255, 255, 0.04);
+      }
+      .device-labels {
+        display: flex;
+        justify-content: center;
+        gap: 24px;
+        margin-top: 20px;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        color: var(--gray);
+      }
+      /* SOCIAL PROOF */
+      #proof {
+        padding: 120px 0;
+      }
+      .proof-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 24px;
+        margin-bottom: 60px;
+      }
+      .proof-card {
+        background: var(--bg2);
+        border: 1.5px solid rgba(255, 255, 255, 0.06);
+        border-radius: 16px;
+        padding: 32px;
+        transition: all 0.4s var(--ease);
+      }
+      .proof-card:hover {
+        border-color: var(--lime);
+        box-shadow: 0 0 30px rgba(200, 255, 0, 0.08);
+      }
+      .proof-quote {
+        font-size: 1rem;
+        line-height: 1.8;
+        margin-bottom: 20px;
+        font-style: italic;
+        color: var(--white);
+      }
+      .proof-author {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .proof-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+      }
+      .proof-avatar.a1 {
+        background: rgba(200, 255, 0, 0.15);
+      }
+      .proof-avatar.a2 {
+        background: rgba(198, 93, 30, 0.2);
+      }
+      .proof-avatar.a3 {
+        background: rgba(200, 255, 0, 0.1);
+      }
+      .proof-name {
+        font-family: var(--font-head);
+        font-weight: 600;
+        color: var(--white);
+        font-size: 0.9rem;
+      }
+      .proof-biz {
+        font-size: 0.75rem;
+        color: var(--gray);
+      }
+      .metrics-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+      }
+      .metric-card {
+        background: var(--bg2);
+        border-radius: 16px;
+        padding: 28px;
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .metric-card .mc-num {
+        font-family: var(--font-head);
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: var(--lime);
+      }
+      .metric-card .mc-label {
+        font-size: 0.85rem;
+        color: var(--gray);
+        margin-top: 6px;
+      }
+      /* PRICING */
+      #pricing {
+        padding: 120px 0;
+      }
+      .pricing-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+      }
+      .pricing-card {
+        background: var(--bg2);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 24px;
+        padding: 40px;
+        position: relative;
+        transition: all 0.4s var(--ease);
+        display: flex;
+        flex-direction: column;
+      }
+      .pricing-card.featured {
+        border-color: var(--lime);
+        background: rgba(200, 255, 0, 0.02);
+      }
+      .pricing-card.featured::after {
+        content: "MOST POPULAR";
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        font-family: var(--font-mono);
+        font-size: 0.6rem;
+        background: var(--lime);
+        color: var(--bg);
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-weight: 700;
+        letter-spacing: 1px;
+      }
+      .pricing-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+      }
+      .plan-name {
+        font-family: var(--font-head);
+        font-size: 1.2rem;
+        color: var(--white);
+        margin-bottom: 12px;
+      }
+      .plan-price {
+        font-family: var(--font-head);
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--white);
+        margin-bottom: 8px;
+        display: flex;
+        align-items: baseline;
+        gap: 4px;
+      }
+      .plan-price span {
+        font-size: 1rem;
+        font-weight: 400;
+        color: var(--gray);
+      }
+      .plan-desc {
+        font-size: 0.9rem;
+        margin-bottom: 32px;
+        line-height: 1.6;
+      }
+      .plan-features {
+        list-style: none;
+        margin-bottom: 40px;
+        flex: 1;
+      }
+      .plan-features li {
+        margin-bottom: 12px;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .plan-features li::before {
+        content: "✓";
+        color: var(--lime);
+        font-weight: 700;
+      }
+      /* EMPIRE */
+      #empire {
+        padding: 120px 0;
+        text-align: center;
+        position: relative;
+      }
+      #empire h2 {
+        font-size: clamp(2.2rem, 4.5vw, 3.5rem);
+        margin-bottom: 16px;
+      }
+      #empire p {
+        max-width: 520px;
+        margin: 0 auto 40px;
+        font-size: 1.05rem;
+        line-height: 1.7;
+      }
+      .empire-glow {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 500px;
+        height: 500px;
+        border-radius: 50%;
+        background: radial-gradient(
+          circle,
+          rgba(200, 255, 0, 0.05) 0%,
+          transparent 70%
+        );
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+      }
+      /* FOOTER */
+      footer {
+        padding: 60px 0 30px;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .footer-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        margin-bottom: 40px;
+      }
+      .footer-brand p {
+        font-size: 0.85rem;
+        line-height: 1.7;
+        max-width: 300px;
+        margin-top: 12px;
+      }
+      .newsletter {
+        display: flex;
+        gap: 12px;
+        max-width: 400px;
+        margin-left: auto;
+      }
+      .newsletter input {
+        flex: 1;
+        padding: 14px 20px;
+        border-radius: 60px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: var(--bg2);
+        color: var(--white);
+        font-family: var(--font-body);
+        font-size: 0.9rem;
+        outline: none;
+        transition: border-color 0.3s;
+      }
+      .newsletter input:focus {
+        border-color: var(--lime);
+      }
+      .newsletter .btn {
+        padding: 14px 28px;
+      }
+      .footer-bottom {
+        text-align: center;
+        padding-top: 24px;
+        border-top: 1px solid rgba(255, 255, 255, 0.04);
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.3);
+      }
+      .footer-links {
+        display: flex;
+        gap: 24px;
+        justify-content: center;
+        margin-bottom: 12px;
+      }
+      .footer-links a {
+        color: var(--gray);
+        font-size: 0.8rem;
+        transition: color 0.3s;
+      }
+      .footer-links a:hover {
+        color: var(--lime);
+      }
+      /* RESPONSIVE */
+      @media (max-width: 768px) {
+        .hero-grid,
+        .offline-grid,
+        .story-step,
+        .footer-grid {
+          grid-template-columns: 1fr;
+        }
+        .story-timeline::before,
+        .story-dot {
+          display: none;
+        }
+        .story-step:nth-child(even) .story-content,
+        .story-step:nth-child(even) .story-visual {
+          order: unset;
+        }
+        .trust-stats {
+          gap: 24px;
+        }
+        .metrics-row {
+          grid-template-columns: 1fr;
+        }
+        .newsletter {
+          flex-direction: column;
+        }
+        .hero-headline {
+          font-size: 2.2rem;
+        }
+        .tx-feed {
+          margin-top: 40px;
+        }
+      }
+      @media (max-width: 480px) {
+        .hero-ctas {
+          flex-direction: column;
+        }
+        .hero-ctas .btn {
+          width: 100%;
+          justify-content: center;
+        }
+        .proof-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="particles"></canvas>
+    <div class="cursor-glow" id="cursorGlow"></div>
+    <!-- NAV -->
+    <nav id="nav">
+      <div class="container">
+        <div class="logo">Sellr<span>POS</span></div>
+        <button class="nav-toggle" id="navToggle">☰</button>
+        <div class="nav-links" id="navLinks">
+          <a href="storefront.html" class="nav-link">Store</a>
+          <a href="track.html" class="nav-link">Track</a>
+          <a href="login.html" class="nav-link">Login</a>
+          <a href="signup.html" class="nav-link">Sign Up</a>
+          <a href="dashboard.html" class="nav-link font-bold text-lime"
+            >Dashboard</a
+          >
+          <a href="contact.html" class="nav-link">Contact</a>
+          <a
+            href="cart.html"
+            style="text-decoration: none; color: var(--lime); font-size: 1.2rem"
+            >🛒</a
+          >
+        </div>
+      </div>
+    </nav>
+    <!-- HERO -->
+    <section id="hero">
+      <div class="container">
+        <div class="hero-grid">
+          <div class="hero-content">
+            <span class="tag">AI-Powered Point of Sale</span>
+            <h1 class="hero-headline">
+              Stop Fighting<br />Your <span class="accent">POS.</span>
+            </h1>
+            <p class="hero-sub">
+              The AI Growth Engine that runs your shop, processes payments,
+              manages inventory, and markets to your customers — all on
+              autopilot.
+            </p>
+            <div class="hero-ctas">
+              <a href="login.html" class="btn btn-primary magnetic"
+                >Start Free Trial →</a
+              >
+              <a href="#" class="btn btn-secondary magnetic">Talk to Sales</a>
+            </div>
+            <div class="trust-stats">
+              <div class="stat-item">
+                <div class="stat-num" data-target="80"><span>0</span>+</div>
+                <div class="stat-label">Businesses Powered</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-num" data-target="50000"><span>0</span>+</div>
+                <div class="stat-label">Transactions Processed</div>
+              </div>
+            </div>
+          </div>
+          <div class="tx-feed reveal">
+            <div class="tx-feed-header">
+              <span class="dot"></span> LIVE TRANSACTION FEED
+            </div>
+            <div class="tx-list" id="txList"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- GROWTH ENGINE -->
+    <section id="growth">
+      <div class="container">
+        <div class="section-header reveal">
+          <span class="tag">The Growth Engine</span>
+          <h2>
+            From Surviving to <span style="color: var(--lime)">Scaling</span>
+          </h2>
+          <p>
+            Your shop runs on hustle. Sellr adds intelligence — so every sale,
+            every customer, and every shilling works harder for you.
+          </p>
+        </div>
+        <div class="story-timeline">
+          <div class="story-step reveal">
+            <div class="story-content">
+              <h3>😩 Drowning in Manual Work</h3>
+              <p>
+                You're counting stock by hand, losing track of sales, and
+                pricing from memory. Your notebook can't keep up with your
+                ambition.
+              </p>
+            </div>
+            <div class="story-visual">
+              <span class="story-emoji">📓</span>
+              <div class="story-metric" style="color: var(--clay)">-34%</div>
+              <div class="story-metric-label">
+                Revenue lost to manual errors
+              </div>
+            </div>
+            <div class="story-dot"></div>
+          </div>
+          <div class="story-step reveal">
+            <div class="story-content">
+              <h3>⚡ Sellr AI Activates</h3>
+              <p>
+                The moment you switch on Sellr, AI starts learning your business
+                — your best sellers, peak hours, slow movers, and customer
+                patterns.
+              </p>
+            </div>
+            <div class="story-visual">
+              <span class="story-emoji">🧠</span>
+              <div class="story-metric">24/7</div>
+              <div class="story-metric-label">AI analyzing your sales data</div>
+            </div>
+            <div class="story-dot"></div>
+          </div>
+          <div class="story-step reveal">
+            <div class="story-content">
+              <h3>📊 Insights That Make Money</h3>
+              <p>
+                Sellr tells you exactly what to restock, when to discount, and
+                which customers are about to churn — before it happens.
+              </p>
+            </div>
+            <div class="story-visual">
+              <span class="story-emoji">📈</span>
+              <div class="story-metric">+47%</div>
+              <div class="story-metric-label">
+                Average revenue increase in 90 days
+              </div>
+            </div>
+            <div class="story-dot"></div>
+          </div>
+          <div class="story-step reveal">
+            <div class="story-content">
+              <h3>📱 WhatsApp Campaigns on Autopilot</h3>
+              <p>
+                Sellr sends personalized promotions to your customers via
+                WhatsApp. Flash sales, loyalty rewards, restock alerts —
+                completely automated.
+              </p>
+            </div>
+            <div class="story-visual">
+              <span class="story-emoji">💬</span>
+              <div class="story-metric">128</div>
+              <div class="story-metric-label">
+                Customers reached per campaign
+              </div>
+            </div>
+            <div class="story-dot"></div>
+          </div>
+          <div class="story-step reveal">
+            <div class="story-content">
+              <h3>🚀 Sales Go Up — Stress Goes Down</h3>
+              <p>
+                You spend less time fighting fires and more time growing your
+                empire. Sellr handles the grind. You handle the vision.
+              </p>
+            </div>
+            <div class="story-visual">
+              <span class="story-emoji">💰</span>
+              <div class="story-metric">3x</div>
+              <div class="story-metric-label">
+                Faster growth vs. manual operations
+              </div>
+            </div>
+            <div class="story-dot"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- AI CAPABILITIES -->
+    <section id="ai">
+      <div class="container">
+        <div class="section-header reveal">
+          <span class="tag">AI Capabilities</span>
+          <h2>
+            Intelligence Built Into
+            <span style="color: var(--lime)">Every Sale</span>
+          </h2>
+          <p>
+            Not bolt-on AI. Not a chatbot gimmick. Real intelligence woven into
+            every transaction, every insight, every customer interaction.
+          </p>
+        </div>
+        <div class="ai-grid">
+          <div class="ai-card reveal" style="--d: 0ms">
+            <div class="ai-card-icon">🧠</div>
+            <h3>AI Inventory Intelligence</h3>
+            <p>
+              Predicts stockouts before they happen. Auto-generates reorder
+              suggestions based on sales velocity, seasonality, and supplier
+              lead times.
+            </p>
+          </div>
+          <div class="ai-card reveal" style="--d: 100ms">
+            <div class="ai-card-icon">📊</div>
+            <h3>AI Sales Insights</h3>
+            <p>
+              Surfaces your most profitable products, peak selling hours, and
+              hidden trends. Get daily briefs that tell you exactly where to
+              focus.
+            </p>
+          </div>
+          <div class="ai-card reveal" style="--d: 200ms">
+            <div class="ai-card-icon">💬</div>
+            <h3>WhatsApp Marketing Engine</h3>
+            <p>
+              Automated campaigns triggered by customer behavior. Flash sales,
+              birthday offers, restock alerts — all through WhatsApp.
+            </p>
+          </div>
+          <div class="ai-card reveal" style="--d: 300ms">
+            <div class="ai-card-icon">🤖</div>
+            <h3>Customer Service Chatbot</h3>
+            <p>
+              24/7 AI-powered assistant handles product inquiries, order status,
+              and FAQs through WhatsApp — while you sleep.
+            </p>
+          </div>
+          <a href="storefront.html" class="ai-card reveal" style="--d: 400ms">
+            <div class="ai-card-icon">🌐</div>
+            <h3>Digital Storefront Sync</h3>
+            <p>
+              Your physical inventory syncs with your online store in real-time.
+              One system of truth. Zero double-entry headaches.
+            </p>
+          </a>
+        </div>
+      </div>
+    </section>
+    <!-- OFFLINE + PAYMENTS -->
+    <section id="offline">
+      <div class="container">
+        <div class="section-header reveal">
+          <span class="tag">Built for Reality</span>
+          <h2>
+            Works <span style="color: var(--clay)">Offline.</span> Pays
+            <span style="color: var(--lime)">Instantly.</span>
+          </h2>
+          <p>
+            East African internet isn't perfect. Your POS shouldn't care. Sellr
+            works offline-first and syncs when connectivity returns.
+          </p>
+        </div>
+        <div class="offline-grid">
+          <div class="feature-list reveal">
+            <div class="feature-item">
+              <div class="fi-icon">📡</div>
+              <div>
+                <h4>Offline-First Architecture</h4>
+                <p>
+                  Process sales, update inventory, and generate receipts — even
+                  without internet. Everything syncs automatically when you're
+                  back online.
+                </p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="fi-icon">📱</div>
+              <div>
+                <h4>Instant M-Pesa STK Push</h4>
+                <p>
+                  Trigger M-Pesa payment prompts directly from the POS.
+                  Automatic reconciliation. No manual confirmation needed.
+                </p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="fi-icon">💻</div>
+              <div>
+                <h4>Any Device, Any Platform</h4>
+                <p>
+                  Run Sellr on iPad, Android tablet, laptop, or desktop. Your
+                  license follows you — not your hardware.
+                </p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="fi-icon">🔌</div>
+              <div>
+                <h4>REST API Integrations</h4>
+                <p>
+                  Connect Sellr to your accounting software, e-commerce
+                  platform, or custom tools. Open API. No lock-in.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="device-mockup reveal">
+            <div class="device-screen">
+              <div class="device-bar">
+                <span></span><span></span><span></span>
+              </div>
+              <div class="device-line l1"></div>
+              <div class="device-line l2"></div>
+              <div class="device-line l3"></div>
+              <div class="device-line l2"></div>
+              <div class="device-line l4"></div>
+              <div class="device-line l1"></div>
+              <div class="device-line l2"></div>
+            </div>
+            <div class="device-labels">
+              <span>📱 iPad</span><span>📱 Android</span><span>💻 Desktop</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- SOCIAL PROOF -->
+    <section id="proof">
+      <div class="container">
+        <div class="section-header reveal">
+          <span class="tag">Trusted by Hustlers</span>
+          <h2>
+            Real Shops. <span style="color: var(--lime)">Real Growth.</span>
+          </h2>
+        </div>
+        <div class="proof-grid">
+          <div class="proof-card reveal">
+            <p class="proof-quote">
+              "Sellr replaced three apps and a notebook. My staff can process
+              M-Pesa payments in seconds, and the AI restock alerts have saved
+              us thousands in lost sales."
+            </p>
+            <div class="proof-author">
+              <div class="proof-avatar a1">🌸</div>
+              <div>
+                <div class="proof-name">Amina W.</div>
+                <div class="proof-biz">Bloom Boutique, Nairobi</div>
+              </div>
+            </div>
+          </div>
+          <div class="proof-card reveal">
+            <p class="proof-quote">
+              "The WhatsApp marketing feature is a game-changer. We send lunch
+              specials automatically and our weekday revenue jumped 40% in the
+              first month."
+            </p>
+            <div class="proof-author">
+              <div class="proof-avatar a2">🍔</div>
+              <div>
+                <div class="proof-name">Kevin M.</div>
+                <div class="proof-biz">Street Eats Food, Westlands</div>
+              </div>
+            </div>
+          </div>
+          <div class="proof-card reveal">
+            <p class="proof-quote">
+              "I used to lose products to theft and miscounts every month. Since
+              Sellr, we've had zero stock discrepancies. Zero. The AI knows my
+              inventory better than I do."
+            </p>
+            <div class="proof-author">
+              <div class="proof-avatar a3">💅</div>
+              <div>
+                <div class="proof-name">Grace O.</div>
+                <div class="proof-biz">Glow Up Salon, Mombasa</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="metrics-row reveal">
+          <div class="metric-card">
+            <div class="mc-num" data-target="10">0+</div>
+            <div class="mc-label">Hours Saved Daily</div>
+          </div>
+          <div class="metric-card">
+            <div class="mc-num" data-target="100">0%</div>
+            <div class="mc-label">Reduction in Stock Losses</div>
+          </div>
+          <div class="metric-card">
+            <div class="mc-num" data-target="50000">0+</div>
+            <div class="mc-label">Transactions Processed</div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- PRICING -->
+    <section id="pricing">
+      <div class="container">
+        <div class="section-header reveal">
+          <span class="tag">Investment</span>
+          <h2>
+            Plans Built for <span style="color: var(--lime)">Every Scale</span>
+          </h2>
+          <p>
+            Transparent pricing with no hidden fees. Start for free, grow
+            without limits.
+          </p>
+        </div>
+        <div class="pricing-grid">
+          <div class="pricing-card reveal" style="--d: 0ms">
+            <div class="plan-name">Starter</div>
+            <div class="plan-price">KES 1,500<span>/mo</span></div>
+            <p class="plan-desc">
+              Perfect for small kiosks and side hustles starting their journey.
+            </p>
+            <ul class="plan-features">
+              <li>1 User License</li>
+              <li>Basic Inventory</li>
+              <li>M-Pesa Integration</li>
+              <li>14-Day Free Trial</li>
+            </ul>
+            <a href="login.html" class="btn btn-secondary magnetic"
+              >Start 14-Day Trial</a
+            >
+          </div>
+          <div class="pricing-card featured reveal" style="--d: 100ms">
+            <div class="plan-name">Growth</div>
+            <div class="plan-price">KES 4,500<span>/mo</span></div>
+            <p class="plan-desc">
+              Designed for thriving shops ready to automate their marketing.
+            </p>
+            <ul class="plan-features">
+              <li>Up to 5 Users</li>
+              <li>AI Sales Insights</li>
+              <li>WhatsApp Marketing</li>
+              <li>Offline Sync Pro</li>
+            </ul>
+            <a href="login.html" class="btn btn-primary magnetic"
+              >Expand My Empire</a
+            >
+          </div>
+          <div class="pricing-card reveal" style="--d: 200ms">
+            <div class="plan-name">Empire</div>
+            <div class="plan-price">KES 12,000<span>/mo</span></div>
+            <p class="plan-desc">
+              For multi-branch retailers needing chain-store intelligence.
+            </p>
+            <ul class="plan-features">
+              <li>Unlimited Users</li>
+              <li>Multi-location Sync</li>
+              <li>Priority AI Support</li>
+              <li>Custom REST API</li>
+            </ul>
+            <a href="contact.html" class="btn btn-secondary magnetic"
+              >Talk to Sales</a
+            >
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- EMPIRE BUILDER -->
+    <section id="empire">
+      <div class="container" style="position: relative">
+        <div class="empire-glow"></div>
+        <div class="reveal">
+          <span class="tag">Your Empire Awaits</span>
+          <h2>
+            Start Growing Your <span style="color: var(--lime)">Empire.</span>
+          </h2>
+          <p>
+            While you sleep, Sellr's AI is analyzing sales, triggering
+            campaigns, and optimizing your inventory. 24/7. No breaks. No
+            excuses.
+          </p>
+          <div
+            style="
+              display: flex;
+              gap: 16px;
+              justify-content: center;
+              flex-wrap: wrap;
+            "
+          >
+            <a href="#" class="btn btn-primary magnetic">Start Free Trial →</a>
+            <a href="#" class="btn btn-secondary magnetic">Talk to Sales</a>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- FOOTER -->
+    <footer>
+      <div class="container">
+        <div class="footer-grid">
+          <div class="footer-brand">
+            <div class="logo">Sellr<span>POS</span></div>
+            <p>
+              AI-powered, offline-first point of sale built for East African
+              retailers ready to scale.
+            </p>
+          </div>
+          <form class="newsletter" onsubmit="return false;">
+            <input
+              type="email"
+              placeholder="Enter your email"
+              aria-label="Email for newsletter"
+            /><button class="btn btn-primary" type="submit">Subscribe</button>
+          </form>
+        </div>
+        <div class="footer-bottom">
+          <div class="footer-links">
+            <a href="#hero">Features</a>
+            <a href="storefront.html">Storefront</a>
+            <a href="#pricing">Pricing</a>
+            <a href="contact.html">Contact</a>
+            <a href="privacy.html">Privacy</a>
+            <a href="terms.html">Terms</a>
+          </div>
+          <p>© 2026 Sellr POS. Built in Nairobi 🇰🇪</p>
+        </div>
+      </div>
+    </footer>
+    <script>
+      // Particle Canvas
+      (function () {
+        const c = document.getElementById("particles"),
+          x = c.getContext("2d");
+        let w,
+          h,
+          pts = [];
+        function resize() {
+          w = c.width = window.innerWidth;
+          h = c.height = window.innerHeight;
+          pts = [];
+          for (let i = 0; i < 60; i++)
+            pts.push({
+              x: Math.random() * w,
+              y: Math.random() * h,
+              vx: (Math.random() - 0.5) * 0.3,
+              vy: (Math.random() - 0.5) * 0.3,
+              r: Math.random() * 1.5 + 0.5,
+            });
+        }
+        resize();
+        window.addEventListener("resize", resize);
+        function draw() {
+          x.clearRect(0, 0, w, h);
+          pts.forEach((p, i) => {
+            p.x += p.vx;
+            p.y += p.vy;
+            if (p.x < 0 || p.x > w) p.vx *= -1;
+            if (p.y < 0 || p.y > h) p.vy *= -1;
+            x.beginPath();
+            x.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            x.fillStyle = "rgba(200,255,0,0.3)";
+            x.fill();
+            for (let j = i + 1; j < pts.length; j++) {
+              const q = pts[j],
+                dx = p.x - q.x,
+                dy = p.y - q.y,
+                d = Math.sqrt(dx * dx + dy * dy);
+              if (d < 120) {
+                x.beginPath();
+                x.moveTo(p.x, p.y);
+                x.lineTo(q.x, q.y);
+                x.strokeStyle = `rgba(200,255,0,${0.08 * (1 - d / 120)})`;
+                x.stroke();
+              }
+            }
+          });
+          requestAnimationFrame(draw);
+        }
+        draw();
+      })();
+
+      // Cursor Glow
+      const glow = document.getElementById("cursorGlow");
+      let mx = 0,
+        my = 0,
+        gx = 0,
+        gy = 0;
+      document.addEventListener("mousemove", (e) => {
+        mx = e.clientX;
+        my = e.clientY;
+      });
+      (function lerpGlow() {
+        gx += (mx - gx) * 0.12;
+        gy += (my - gy) * 0.12;
+        glow.style.left = gx + "px";
+        glow.style.top = gy + "px";
+        requestAnimationFrame(lerpGlow);
+      })();
+
+      // Scroll Reveal with stagger
+      const obs = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) {
+              const d = parseInt(e.target.style.getPropertyValue("--d")) || 0;
+              setTimeout(() => e.target.classList.add("active"), d);
+              obs.unobserve(e.target);
+            }
+          });
+        },
+        { threshold: 0.15 },
+      );
+      document.querySelectorAll(".reveal").forEach((el) => obs.observe(el));
+
+      // Nav Scroll
+      const nav = document.getElementById("nav");
+      window.addEventListener("scroll", () => {
+        nav.classList.toggle("scrolled", window.scrollY > 50);
+      });
+
+      // Mobile Menu Toggle
+      const navToggle = document.getElementById("navToggle");
+      const navLinks = document.getElementById("navLinks");
+
+      navToggle.addEventListener("click", () => {
+        navLinks.classList.toggle("active");
+        navToggle.textContent = navLinks.classList.contains("active")
+          ? "✕"
+          : "☰";
+      });
+
+      // Close menu on link click
+      navLinks.querySelectorAll(".nav-link").forEach((link) => {
+        link.addEventListener("click", () => {
+          navLinks.classList.remove("active");
+          navToggle.textContent = "☰";
+        });
+      });
+
+      // Transaction Feed
+      const txData = [
+        {
+          icon: "💰",
+          text: "Sale Processed — <span>KES 2,450</span>",
+          time: "just now",
+        },
+        {
+          icon: "📱",
+          text: "M-Pesa Confirmed — <span>MPESA7X9K2</span>",
+          time: "2s ago",
+        },
+        {
+          icon: "📦",
+          text: "Inventory Updated — <span>47 → 46 units</span>",
+          time: "3s ago",
+        },
+        {
+          icon: "📲",
+          text: "WhatsApp Promo Sent — <span>128 customers</span>",
+          time: "5s ago",
+        },
+        {
+          icon: "💰",
+          text: "Sale Processed — <span>KES 890</span>",
+          time: "just now",
+        },
+        {
+          icon: "📱",
+          text: "M-Pesa Confirmed — <span>MPESA3R8M1</span>",
+          time: "2s ago",
+        },
+        {
+          icon: "📦",
+          text: "Stock Alert — <span>Reorder Paracetamol</span>",
+          time: "4s ago",
+        },
+        {
+          icon: "💬",
+          text: 'Chatbot Replied — <span>"Yes, in stock"</span>',
+          time: "6s ago",
+        },
+      ];
+      const txList = document.getElementById("txList");
+      let txIdx = 0;
+      function addTx() {
+        if (txList.children.length >= 4) txList.removeChild(txList.firstChild);
+        const t = txData[txIdx % txData.length];
+        const el = document.createElement("div");
+        el.className = "tx-item";
+        el.style.setProperty("--d", "0s");
+        el.innerHTML = `<span class="tx-icon">${t.icon}</span><span class="tx-text">${t.text}</span><span class="tx-time">${t.time}</span>`;
+        txList.appendChild(el);
+        txIdx++;
+      }
+      for (let i = 0; i < 4; i++) setTimeout(() => addTx(), i * 300);
+      setInterval(addTx, 2500);
+
+      // Magnetic Buttons
+      document.querySelectorAll(".magnetic").forEach((btn) => {
+        btn.addEventListener("mousemove", (e) => {
+          const r = btn.getBoundingClientRect();
+          const x = e.clientX - r.left - r.width / 2;
+          const y = e.clientY - r.top - r.height / 2;
+          btn.style.transform = `translate(${x * 0.15}px,${y * 0.15}px)`;
+        });
+        btn.addEventListener("mouseleave", () => {
+          btn.style.transform = "translate(0,0)";
+        });
+      });
+
+      // Counter Animation
+      function animateCounter(el, target) {
+        let current = 0;
+        const step = target / 60;
+        const timer = setInterval(() => {
+          current += step;
+          if (current >= target) {
+            current = target;
+            clearInterval(timer);
+          }
+          el.querySelector("span").textContent =
+            target >= 1000
+              ? Math.floor(current).toLocaleString()
+              : Math.floor(current);
+        }, 25);
+      }
+      const counterObs = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) {
+              const t = parseInt(e.target.dataset.target);
+              animateCounter(e.target, t);
+              counterObs.unobserve(e.target);
+            }
+          });
+        },
+        { threshold: 0.5 },
+      );
+      document
+        .querySelectorAll("[data-target]")
+        .forEach((el) => counterObs.observe(el));
+    </script>
+  </body>
+</html>
